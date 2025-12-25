@@ -13,3 +13,4 @@ go.work
 
 .env
 Makefile
+*.txt

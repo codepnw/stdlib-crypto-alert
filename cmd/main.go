@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/stdlib-crypto-alert/internal/worker"
 	"github.com/stdlib-crypto-alert/pkg/config"
 	"github.com/stdlib-crypto-alert/pkg/database"
 )
@@ -20,4 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+	
+	worker.StartPriceFetcher()
+	select{}
 }
