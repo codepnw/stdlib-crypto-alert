@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: crypto-alert-db
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${PQ_USER}
+      POSTGRES_PASSWORD: ${PQ_PASS}
+      POSTGRES_DB: ${PQ_DB}
+    ports:
+      - "${PQ_PORT}:5432"
