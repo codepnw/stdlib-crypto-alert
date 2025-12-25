@@ -1,48 +1,27 @@
 package worker
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
+	"context"
 	"time"
 
-	"github.com/stdlib-crypto-alert/internal/models"
+	"github.com/stdlib-crypto-alert/internal/service"
 )
 
-func StartPriceFetcher() {
+func StartPriceFetcher(srv service.AlertService) {
 	ticker := time.NewTicker(10 * time.Second)
 
+	supportedSymbols := []string{"BTCUSDT", "ETHUSDT", "DOGEUSDT", "BNBUSDT"}
+
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				price, err := fetchBinacePrice("BTCUSDT")
-				if err != nil {
-					log.Printf("Error fetching price: %w", err)
-					continue
-				}
-				log.Printf("Current BTC price: %s USD", price)
-				
-				// TODO:
+		for range ticker.C {
+			for _, symbol := range supportedSymbols {
+				func(sym string) {
+					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+					defer cancel()
+
+					srv.ProcessAlerts(ctx, sym)
+				}(symbol)
 			}
 		}
 	}()
-}
-
-func fetchBinacePrice(symbol string) (string, error) {
-	url := fmt.Sprintf("https://api.binance.com/api/v3/ticker/price?symbol=%s", symbol)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	var ticker models.BinanceTicker
-	if err := json.NewDecoder(resp.Body).Decode(&ticker); err != nil {
-		return "", err
-	}
-
-	return ticker.Price, nil
 }

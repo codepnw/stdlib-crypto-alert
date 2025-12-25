@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/caarlos0/env/v11"
-	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
+	"github.com/stdlib-crypto-alert/pkg/validate"
 )
 
 type EnvConfig struct {
@@ -15,11 +15,7 @@ type EnvConfig struct {
 	PQPort    int    `env:"PQ_PORT" envDefault:"5432"`
 	PQDB      string `env:"PQ_DB" validate:"required"`
 	PQSSLMode string `env:"PQ_SSL_MODE" envDefault:"disable"`
-}
-
-func validate(input any) error {
-	v := validator.New()
-	return v.Struct(input)
+	AppPort   int    `env:"APP_PORT" envDefault:"8080"`
 }
 
 func InitEnvConfig(envPath string) (*EnvConfig, error) {
@@ -32,7 +28,7 @@ func InitEnvConfig(envPath string) (*EnvConfig, error) {
 		return nil, fmt.Errorf("parse env failed: %w", err)
 	}
 
-	if err := validate(cfg); err != nil {
+	if err := validate.Struct(cfg); err != nil {
 		return nil, fmt.Errorf("validate env failed: %w", err)
 	}
 
@@ -50,4 +46,8 @@ func (cfg *EnvConfig) GetDBConnectionString() string {
 		cfg.PQSSLMode,
 	)
 	return conn
+}
+
+func (cfg *EnvConfig) GetServerAddress() string {
+	return fmt.Sprintf(":%d", cfg.AppPort)
 }
